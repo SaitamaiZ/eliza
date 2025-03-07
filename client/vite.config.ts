@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
         },
         server: {
             allowedHosts: [
-                "5173-saitamaiz-eliza-hu4ufgyddcs.ws-eu118.gitpod.io"
+                "harmonia.up.railway.app"
             ]
         }
     };
