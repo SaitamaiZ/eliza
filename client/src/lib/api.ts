@@ -1,6 +1,6 @@
 import type { UUID, Character } from "@elizaos/core";
 
-const BASE_URL =`https://3000-saitamaiz-eliza-hu4ufgyddcs.ws-eu118.gitpod.io`;
+const BASE_URL =`https://api-harmonia.up.railway.app`;
 
 console.log({ BASE_URL });
 
