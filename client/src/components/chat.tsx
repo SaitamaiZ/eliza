@@ -7,13 +7,12 @@ import {
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { useTransition, animated, type AnimatedProps } from "@react-spring/web";
-import { Paperclip, Send, X } from "lucide-react";
+import { ArrowLeft, Info, Paperclip, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Content, UUID } from "@elizaos/core";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import { cn, moment } from "@/lib/utils";
-import { Avatar, AvatarImage } from "./ui/avatar";
+import { cn, getDefaultAvatar, moment } from "@/lib/utils";
 import CopyButton from "./copy-button";
 import ChatTtsButton from "./ui/chat/chat-tts-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -23,6 +22,10 @@ import type { IAttachment } from "@/types";
 import { AudioRecorder } from "./audio-recorder";
 import { Badge } from "./ui/badge";
 import { useAutoScroll } from "./ui/chat/hooks/useAutoScroll";
+import { AgentAvatar } from "./ui/agent-avatar";
+import { AgentSpecialtyBadge } from "./ui/agent-specialty-badge";
+import { NavLink } from "react-router";
+import { type Agent } from "@/types/index";
 
 type ExtraContentFields = {
     user: string;
@@ -170,9 +173,115 @@ export default function Page({ agentId }: { agentId: UUID }) {
 
     const CustomAnimatedDiv = animated.div as React.FC<AnimatedDivProps>;
 
+    // Mock data for agent details
+    // In a real app, this would come from the API
+    const mockAgentData: Record<string, Partial<Agent>> = {
+        "Jeanne": {
+            status: "online",
+            specialty: "juriste",
+            lastSeen: new Date().toISOString(),
+        },
+        "Jean": {
+            status: "online",
+            specialty: "juriste",
+            lastSeen: new Date().toISOString(),
+        },
+        "C3PO": {
+            status: "away",
+            specialty: "généraliste",
+            lastSeen: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
+        },
+        "Dobby": {
+            status: "online",
+            specialty: "enseignant",
+            lastSeen: new Date().toISOString(),
+        },
+        "Trump": {
+            status: "offline",
+            specialty: "sportif",
+            lastSeen: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+        },
+    };
+
+    // Get agent details
+    const { data: agentData } = useQuery({
+        queryKey: ["agent", agentId],
+        queryFn: () => apiClient.getAgent(agentId),
+    });
+
+    const agentName = agentData?.character?.name || "";
+    const mockData = mockAgentData[agentName] || {};
+    
+    const agent: Agent = {
+        id: agentId,
+        name: agentName,
+        status: mockData.status || "offline",
+        specialty: mockData.specialty,
+        lastSeen: mockData.lastSeen,
+        avatar: getDefaultAvatar(agentName),
+    };
+
     return (
-        <div className="flex flex-col w-full h-[calc(100dvh)] p-4">
-            <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col w-full h-[calc(100dvh)]">
+            {/* Chat header - WhatsApp style */}
+            <div className="flex items-center gap-3 p-4 border-b border-zinc-800 bg-zinc-900 sticky top-0 z-10 shadow-sm">
+                <NavLink to="/">
+                    <Button variant="ghost" size="icon" className="mr-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </NavLink>
+                
+                <AgentAvatar 
+                    name={agent.name} 
+                    status={agent.status} 
+                    avatar={agent.avatar}
+                    size="lg"
+                />
+                
+                <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                        <span className="font-bold truncate text-lg">
+                            {agent.name}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={cn(
+                            "size-2 rounded-full",
+                            agent.status === "online" ? "bg-green-500" : 
+                            agent.status === "away" ? "bg-yellow-500" : "bg-gray-500"
+                        )} />
+                        <span className="text-sm text-muted-foreground">
+                            {agent.status === "online" 
+                                ? "En ligne" 
+                                : agent.lastSeen 
+                                    ? `Vu ${moment(agent.lastSeen).fromNow()}` 
+                                    : "Hors ligne"}
+                        </span>
+                        {agent.specialty && (
+                            <AgentSpecialtyBadge 
+                                specialty={agent.specialty} 
+                                className="text-xs px-2 py-0.5 ml-1"
+                            />
+                        )}
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-full">
+                                <Info className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                            <p>Informations sur l'agent</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
+            </div>
+            
+            {/* Chat messages area - WhatsApp style with subtle pattern */}
+            <div className="flex-1 overflow-y-auto p-4 bg-muted/10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAwIDJhOTggOTggMCAwMTk4IDk4YzAgNTQuMTMtNDMuODcgOTgtOTggOThTMiAxNTQuMTMgMiAxMDBBOTggOTggMCAwMTEwMCAyeiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDEwMCwxMDAsMTAwLDAuMDUpIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==')]">
                 <ChatMessageList 
                     scrollRef={scrollRef}
                     isAtBottom={isAtBottom}
@@ -193,12 +302,16 @@ export default function Page({ agentId }: { agentId: UUID }) {
                             >
                                 <ChatBubble
                                     variant={variant}
-                                    className="flex flex-row items-center gap-2"
+                                    className="flex flex-row items-start gap-2"
                                 >
                                     {message?.user !== "user" ? (
-                                        <Avatar className="size-8 p-1 border rounded-full select-none">
-                                            <AvatarImage src="/elizaos-icon.png" />
-                                        </Avatar>
+                                        <AgentAvatar 
+                                            name={agent.name} 
+                                            status={agent.status}
+                                            avatar={agent.avatar}
+                                            size="sm"
+                                            showStatus={false}
+                                        />
                                     ) : null}
                                     <div className="flex flex-col">
                                         <ChatBubbleMessage
@@ -282,57 +395,52 @@ export default function Page({ agentId }: { agentId: UUID }) {
                     })}
                 </ChatMessageList>
             </div>
-            <div className="px-4 pb-4">
+            {/* Chat input area - WhatsApp style */}
+            <div className="p-3 border-t border-zinc-800 bg-zinc-900 shadow-sm">
                 <form
                     ref={formRef}
                     onSubmit={handleSendMessage}
-                    className="relative rounded-md border bg-card"
+                    className="relative rounded-full border border-zinc-700 bg-zinc-800 flex items-center shadow-sm"
                 >
                     {selectedFile ? (
-                        <div className="p-3 flex">
-                            <div className="relative rounded-md border p-2">
+                        <div className="absolute bottom-full left-0 mb-2 p-2 bg-card rounded-lg border shadow-sm">
+                            <div className="relative rounded-md p-1">
                                 <Button
                                     onClick={() => setSelectedFile(null)}
                                     className="absolute -right-2 -top-2 size-[22px] ring-2 ring-background"
                                     variant="outline"
                                     size="icon"
                                 >
-                                    <X />
+                                    <X className="h-3 w-3" />
                                 </Button>
                                 <img
                                     alt="Selected file"
                                     src={URL.createObjectURL(selectedFile)}
                                     height="100%"
                                     width="100%"
-                                    className="aspect-square object-contain w-16"
+                                    className="aspect-square object-contain w-16 rounded-md"
                                 />
                             </div>
                         </div>
                     ) : null}
-                    <ChatInput
-                        ref={inputRef}
-                        onKeyDown={handleKeyDown}
-                        value={input}
-                        onChange={({ target }) => setInput(target.value)}
-                        placeholder="Type your message here..."
-                        className="min-h-12 resize-none rounded-md bg-card border-0 p-3 shadow-none focus-visible:ring-0"
-                    />
-                    <div className="flex items-center p-3 pt-0">
+                    
+                    <div className="flex items-center pl-2">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div>
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        className="rounded-full h-10 w-10 hover:bg-muted/50"
                                         onClick={() => {
                                             if (fileInputRef.current) {
                                                 fileInputRef.current.click();
                                             }
                                         }}
                                     >
-                                        <Paperclip className="size-4" />
+                                        <Paperclip className="size-5 text-muted-foreground" />
                                         <span className="sr-only">
-                                            Attach file
+                                            Joindre un fichier
                                         </span>
                                     </Button>
                                     <input
@@ -344,25 +452,43 @@ export default function Page({ agentId }: { agentId: UUID }) {
                                     />
                                 </div>
                             </TooltipTrigger>
-                            <TooltipContent side="left">
-                                <p>Attach file</p>
+                            <TooltipContent side="top">
+                                <p>Joindre un fichier</p>
                             </TooltipContent>
                         </Tooltip>
-                        <AudioRecorder
-                            agentId={agentId}
-                            onChange={(newInput: string) => setInput(newInput)}
+                    </div>
+                    
+                    <div className="flex-1 px-2">
+                        <ChatInput
+                            ref={inputRef}
+                            onKeyDown={handleKeyDown}
+                            value={input}
+                            onChange={({ target }) => setInput(target.value)}
+                            placeholder="Écrivez un message..."
+                            className="min-h-12 resize-none bg-transparent border-0 p-3 shadow-none focus-visible:ring-0 text-white placeholder:text-zinc-500"
                         />
-                        <Button
-                            disabled={!input || sendMessageMutation?.isPending}
-                            type="submit"
-                            size="sm"
-                            className="ml-auto gap-1.5 h-[30px]"
-                        >
-                            {sendMessageMutation?.isPending
-                                ? "..."
-                                : "Send Message"}
-                            <Send className="size-3.5" />
-                        </Button>
+                    </div>
+                    
+                    <div className="pr-2">
+                        {input ? (
+                            <Button
+                                disabled={sendMessageMutation?.isPending}
+                                type="submit"
+                                size="icon"
+                                className="rounded-full h-10 w-10 bg-primary hover:bg-primary/90"
+                            >
+                                {sendMessageMutation?.isPending ? (
+                                    <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+                                ) : (
+                                    <Send className="size-5" />
+                                )}
+                            </Button>
+                        ) : (
+                            <AudioRecorder
+                                agentId={agentId}
+                                onChange={(newInput: string) => setInput(newInput)}
+                            />
+                        )}
                     </div>
                 </form>
             </div>

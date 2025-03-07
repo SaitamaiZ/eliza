@@ -1,0 +1,15 @@
+/* Fix pour supprimer l'écart noir entre la sidebar et le contenu principal */
+.group.peer.hidden.md\:block [class*="duration-200 relative h-svh w-[--sidebar-width] bg-transparent"] {
+  display: none !important;
+}
+
+.group.peer.hidden.md\:block [class*="duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width]"] {
+  left: 0 !important;
+  margin: 0 !important;
+}
+
+.group.peer.hidden.md\:block [class*="duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width]"] [data-sidebar="sidebar"] {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  height: 100% !important;
+}

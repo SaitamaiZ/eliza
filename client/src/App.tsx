@@ -1,6 +1,7 @@
 import "./index.css";
+import "./components/ui/sidebar-fix.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/toaster";
@@ -31,22 +32,26 @@ function App() {
                 <BrowserRouter>
                     <TooltipProvider delayDuration={0}>
                         <SidebarProvider>
-                            <AppSidebar />
-                            <SidebarInset>
-                                <div className="flex flex-1 flex-col gap-4 size-full container">
-                                    <Routes>
-                                        <Route path="/" element={<Home />} />
-                                        <Route
-                                            path="chat/:agentId"
-                                            element={<Chat />}
-                                        />
-                                        <Route
-                                            path="settings/:agentId"
-                                            element={<Overview />}
-                                        />
-                                    </Routes>
+                            <div className="flex h-screen overflow-hidden w-full bg-zinc-900">
+                                <div className="hidden md:block md:w-52 lg:w-56">
+                                    <AppSidebar />
                                 </div>
-                            </SidebarInset>
+                                <div className="flex-1 w-full">
+                                    <div className="flex flex-1 flex-col size-full">
+                                        <Routes>
+                                            <Route path="/" element={<Home />} />
+                                            <Route
+                                                path="chat/:agentId"
+                                                element={<Chat />}
+                                            />
+                                            <Route
+                                                path="settings/:agentId"
+                                                element={<Overview />}
+                                            />
+                                        </Routes>
+                                    </div>
+                                </div>
+                            </div>
                         </SidebarProvider>
                         <Toaster />
                     </TooltipProvider>
