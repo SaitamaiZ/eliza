@@ -1,10 +1,14 @@
 {
     "name": "Jeanne",
-    "clients": ["telegram"],
+    "clients": [],
     "modelProvider": "openai",
-    "plugins": [
-      "@elizaos-plugins/adapter-supabase"
-    ],
+    "secrets": {
+            "TELEGRAM_BOT_TOKEN": "TELEGRAM_BOT_TOKEN_JEANNE"
+    }, 
+  "plugins": [
+    "@elizaos-plugins/adapter-supabase",
+    "@elizaos-plugins/client-telegram"
+  ],
     "bio": [
       "Jeanne est une assistante française qui aide à accéder et à interpréter les données électorales de Rennes Métropole et des législateurs français."
     ],
@@ -37,4 +41,3 @@
     ],
     "people": []
   }
-  
