@@ -1,6 +1,6 @@
 {
     "name": "Jeanne",
-    "clients": [],
+    "clients": ["telegram"],
     "modelProvider": "openai",
     "plugins": [
       "@elizaos-plugins/adapter-supabase"
