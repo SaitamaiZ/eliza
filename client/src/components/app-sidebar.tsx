@@ -1,27 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import info from "@/lib/info.json";
-import {
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSkeleton,
-} from "@/components/ui/sidebar";
 import { CustomSidebar } from "@/components/ui/custom-sidebar";
 import { apiClient } from "@/lib/api";
-import { NavLink, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import type { UUID } from "@elizaos/core";
 import { Cog, Search } from "lucide-react";
-import ConnectionStatus from "./connection-status";
 import { AgentAvatar } from "./ui/agent-avatar";
-import { AgentSpecialtyBadge } from "./ui/agent-specialty-badge";
 import { Input } from "./ui/input";
 import { useState } from "react";
-import { cn, moment } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { type Agent } from "@/types/index";
 
 // Mock data for agent specialties and statuses
@@ -55,7 +42,6 @@ const mockAgentData: Record<string, Partial<Agent>> = {
 };
 
 export function AppSidebar() {
-    const location = useLocation();
     const [searchQuery, setSearchQuery] = useState("");
     
     const query = useQuery({
